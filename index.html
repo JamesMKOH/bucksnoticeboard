@@ -323,6 +323,19 @@ input:focus-visible,select:focus-visible,button:focus-visible,.card:focus-visibl
 .lodge-badge.cer{background:#E7F0F9;color:var(--blue-deep)}
 .lodge-badge.spec{background:#FEF8DC;color:#6b5a04}
 .lodge-badge.inst{background:var(--red);color:#fff}
+button.lname{
+  background:none;border:none;padding:0;margin:0;font:inherit;
+  font-weight:600;color:var(--red);text-align:left;cursor:pointer;
+}
+button.lname:hover{text-decoration:underline}
+.lodge-detail{margin-top:.4rem;font-size:.82rem;line-height:1.5;color:var(--ink)}
+.lodge-detail .llbl{display:block;font-weight:700;font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft)}
+.lodge-table tr.lodge-divider td{
+  background:var(--paper);color:var(--ink-soft);
+  font-weight:700;font-size:.78rem;letter-spacing:.05em;text-transform:uppercase;
+  padding:.8rem .9rem;border-top:2px solid var(--line);
+}
+.lodge-table tr.lodge-past td{color:var(--ink-soft)}
 
 /* ---------- Locations ---------- */
 .location-card{
@@ -557,7 +570,7 @@ const SAMPLE_LINKS = [
   {"Category":"Websites","Name":"Buckinghamshire PGL","URL":"https://buckspgl.org","Description":"Fictional example — the Provincial Grand Lodge website.","Show":"Yes"}
 ];
 
-const state = { rows: [], news: [], provEvents: [], commEvents: [], lodges: [], links: [], updated: "", search: "", role: "", type: "", lastFetch: 0, lodgeSearch: "", lodgeSort: "date", lodgeSortDir: 1 };
+const state = { rows: [], news: [], provEvents: [], commEvents: [], lodges: [], links: [], updated: "", search: "", role: "", type: "", lastFetch: 0, lodgeSearch: "", lodgeSort: "date", lodgeSortDir: 1, lodgeOpen: new Set() };
 const $ = id => document.getElementById(id);
 const URG_RANK = { high: 0, medium: 1, low: 2 };
 
@@ -899,49 +912,122 @@ function renderAll() {
 }
 
 /* ---------- Lodges ---------- */
-function lodgeSortValue(r, col) {
-  if (col === "name") return String(r["Name"] ?? "").toLowerCase();
-  if (col === "town") return String(r["Town"] ?? "").toLowerCase();
-  const d = parseDate(r["Next Meeting"]);
+function firstFilled(rows, field) {
+  for (const r of rows) { const v = String(r[field] ?? "").trim(); if (v) return v; }
+  return "";
+}
+
+/* The Lodges sheet has one row per MEETING, so group rows into one entry per lodge. */
+function buildLodgeGroups() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const map = new Map();
+  state.lodges.forEach(r => {
+    const key = String(r["Code"] || r["Name"] || "").trim();
+    if (!key) return;
+    if (!map.has(key)) map.set(key, { key, name: String(r["Name"] ?? "").trim(), rows: [] });
+    map.get(key).rows.push({ ...r, _d: parseDate(r["Next Meeting"]) });
+  });
+  return [...map.values()].map(g => {
+    const dated = g.rows.filter(x => x._d).sort((a, b) => a._d - b._d);
+    g.next = dated.find(x => x._d >= today) || null;
+    g.last = dated.length ? dated[dated.length - 1] : null;
+    g.src = g.next || g.last || g.rows[0];
+    g.secretary = firstFilled(g.rows, "Secretary");
+    g.email = firstFilled(g.rows, "Email");
+    g.formula = firstFilled(g.rows, "Meeting Formula");
+    return g;
+  });
+}
+
+function lodgeSortValue(g, col) {
+  if (col === "name") return g.name.toLowerCase();
+  if (col === "town") return String(g.src["Town"] ?? "").toLowerCase();
+  const d = g.next ? g.next._d : (g.last ? g.last._d : null);
   return d ? d.getTime() : Infinity;
 }
 
-function renderLodges() {
-  const q = state.lodgeSearch.toLowerCase();
-  let rows = state.lodges.filter(r => {
-    if (!q) return true;
-    const hay = [r["Name"], r["Town"], r["Address"], r["Postcode"]].map(v => String(v ?? "")).join(" ").toLowerCase();
-    return hay.includes(q);
-  });
-  rows.sort((a, b) => {
-    const av = lodgeSortValue(a, state.lodgeSort), bv = lodgeSortValue(b, state.lodgeSort);
-    if (av < bv) return -1 * state.lodgeSortDir;
-    if (av > bv) return 1 * state.lodgeSortDir;
-    return 0;
-  });
+function bookingMailto(g) {
+  const email = String(g.email ?? "").trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return "";
+  const when = g.next ? fmtDate(g.next._d) : "";
+  const subject = "Visitor booking – " + g.name + (when ? " – " + when : "");
+  const body = [
+    "Dear Secretary,", "",
+    "I would like to book in as a visitor to " + g.name + (when ? " on " + when + "." : "."), "",
+    "Name:", "Lodge and number:", "Rank:", "Dining (yes/no):", "Dietary requirements:", "",
+    "Many thanks"
+  ].join("\r\n");
+  return "mailto:" + email + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+}
 
-  const tbody = $("lodgeTbody");
-  if (rows.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="big">No lodges match</div><div>Try a different search.</div></div></td></tr>`;
-    return state.lodges.length;
+function lodgeRowHtml(g, isPast) {
+  const src = g.src;
+  const d = g.next ? g.next._d : (g.last ? g.last._d : null);
+  const badges = [];
+  if (g.next) {
+    if (String(src["Installation"] ?? "").trim().toLowerCase() === "yes") badges.push(`<span class="lodge-badge inst">Installation</span>`);
+    if (src["Ceremony"]) badges.push(`<span class="lodge-badge cer">${esc(src["Ceremony"])}</span>`);
+    if (src["Special Events"]) badges.push(`<span class="lodge-badge spec">${esc(src["Special Events"])}</span>`);
   }
-  tbody.innerHTML = rows.map(r => {
-    const d = parseDate(r["Next Meeting"]);
-    const badges = [];
-    if (String(r["Installation"] ?? "").trim().toLowerCase() === "yes") badges.push(`<span class="lodge-badge inst">Installation</span>`);
-    if (r["Ceremony"]) badges.push(`<span class="lodge-badge cer">${esc(r["Ceremony"])}</span>`);
-    if (r["Special Events"]) badges.push(`<span class="lodge-badge spec">${esc(r["Special Events"])}</span>`);
-    return `
-    <tr>
-      <td><div class="lname">${esc(r["Name"])}</div></td>
-      <td>${d ? esc(fmtDate(d)) : ""}</td>
-      <td>${esc(r["Address1"] ?? "")}${r["Town"] ? ", " + esc(r["Town"]) : ""}</td>
-      <td>${r["Secretary"] ? esc(r["Secretary"]) : "<span class=\"lmeta\">—</span>"}${r["Email"] ? `<div class="lmeta">${contactHtml(r["Email"])}</div>` : ""}</td>
+  const dateCell = !d ? `<span class="lmeta">No date listed</span>`
+    : isPast ? `<span class="lmeta">Last listed: ${esc(fmtDate(d))}</span>` : esc(fmtDate(d));
+  const mail = bookingMailto(g);
+  const emailHtml = g.email
+    ? `<div class="lmeta">${mail ? `<a href="${esc(mail)}" title="Email the secretary to book in">${esc(g.email)}</a>` : esc(g.email)}</div>`
+    : "";
+  const open = state.lodgeOpen.has(g.key);
+  return `
+    <tr class="${isPast ? "lodge-past" : ""}">
+      <td>
+        <button type="button" class="lname" data-key="${esc(g.key)}" aria-expanded="${open}">${esc(g.name)}</button>
+        <div class="lodge-detail"${open ? "" : " hidden"}><span class="llbl">Meeting pattern</span>${g.formula ? esc(g.formula) : "Not listed"}</div>
+      </td>
+      <td>${dateCell}</td>
+      <td>${esc(src["Address1"] ?? "")}${src["Town"] ? ", " + esc(src["Town"]) : ""}</td>
+      <td>${g.secretary ? esc(g.secretary) : `<span class="lmeta">—</span>`}${emailHtml}</td>
       <td>${badges.join("") || "—"}</td>
     </tr>`;
-  }).join("");
-  return state.lodges.length;
 }
+
+function renderLodges() {
+  const groups = buildLodgeGroups();
+  const q = state.lodgeSearch.toLowerCase();
+  const shown = groups.filter(g => {
+    if (!q) return true;
+    const hay = [g.name, g.src["Town"], g.src["Address"], g.src["Postcode"]].map(v => String(v ?? "")).join(" ").toLowerCase();
+    return hay.includes(q);
+  });
+  const cmp = flip => (a, b) => {
+    const av = lodgeSortValue(a, state.lodgeSort), bv = lodgeSortValue(b, state.lodgeSort);
+    const dir = state.lodgeSortDir * (flip ? -1 : 1);
+    return av < bv ? -dir : av > bv ? dir : 0;
+  };
+  const upcoming = shown.filter(g => g.next).sort(cmp(false));
+  const past = shown.filter(g => !g.next).sort(cmp(state.lodgeSort === "date"));  // most recently lapsed first
+
+  const tbody = $("lodgeTbody");
+  if (shown.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="big">No lodges match</div><div>Try a different search.</div></div></td></tr>`;
+    return groups.length;
+  }
+  tbody.innerHTML =
+    upcoming.map(g => lodgeRowHtml(g, false)).join("") +
+    (past.length
+      ? `<tr class="lodge-divider"><td colspan="5">Meeting dates have passed — awaiting update (${past.length})</td></tr>` +
+        past.map(g => lodgeRowHtml(g, true)).join("")
+      : "");
+  return groups.length;
+}
+
+$("lodgeTbody").addEventListener("click", e => {
+  const b = e.target.closest("button.lname");
+  if (!b) return;
+  const detail = b.nextElementSibling;
+  const nowOpen = detail.hidden;
+  detail.hidden = !nowOpen;
+  b.setAttribute("aria-expanded", String(nowOpen));
+  if (nowOpen) state.lodgeOpen.add(b.dataset.key); else state.lodgeOpen.delete(b.dataset.key);
+});
 
 document.querySelectorAll("#lodgeTable th[data-sort]").forEach(th => {
   th.addEventListener("click", () => {
@@ -994,10 +1080,12 @@ function renderLocations() {
   state.lodges.forEach(l => {
     const key = String(l["Postcode"] ?? l["Address1"] ?? l["Name"]).trim();
     if (!key) return;
-    if (!venueMap[key]) venueMap[key] = { name: l["Address1"] || l["Name"], address: l["Address"] || "", lodges: [] };
-    venueMap[key].lodges.push(l["Name"]);
+    if (!venueMap[key]) venueMap[key] = { name: l["Address1"] || l["Name"], address: l["Address"] || "", lodges: new Set() };
+    venueMap[key].lodges.add(String(l["Name"] ?? "").trim());
   });
-  const venues = Object.values(venueMap).sort((a, b) => a.name.localeCompare(b.name));
+  const venues = Object.values(venueMap)
+    .map(v => ({ ...v, lodges: [...v.lodges].filter(Boolean).sort((a, b) => a.localeCompare(b)) }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   const el = $("locationsList");
   if (venues.length === 0) {
