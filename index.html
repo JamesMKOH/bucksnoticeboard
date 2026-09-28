@@ -323,6 +323,12 @@ input:focus-visible,select:focus-visible,button:focus-visible,.card:focus-visibl
 .lodge-badge.cer{background:#E7F0F9;color:var(--blue-deep)}
 .lodge-badge.spec{background:#FEF8DC;color:#6b5a04}
 .lodge-badge.inst{background:var(--red);color:#fff}
+.event-title button.lname{font-weight:400;color:var(--red)}
+.lodge-contact{font-size:.85rem;margin-top:.5rem;color:var(--ink-soft);line-height:1.5}
+.lodge-contact a{color:var(--red)}
+.event-card.lodge-past{opacity:.72}
+.event-card.lodge-past .date-block{background:var(--ink-soft)}
+.event-card.lodge-past .date-block .m{color:#fff}
 button.lname{
   background:none;border:none;padding:0;margin:0;font:inherit;
   font-weight:600;color:var(--red);text-align:left;cursor:pointer;
@@ -487,23 +493,15 @@ footer{
 </section>
 
 <section id="panel-lodges" class="panel" hidden>
-  <div class="toolbar">
+  <div class="toolbar" style="max-width:760px">
     <input type="search" id="lodgeSearch" placeholder="Search lodge or venue…" aria-label="Search lodges">
+    <select id="lodgeSortSel" aria-label="Sort lodges">
+      <option value="date">Sort: next meeting</option>
+      <option value="name">Sort: name (A–Z)</option>
+      <option value="town">Sort: venue</option>
+    </select>
   </div>
-  <div class="lodge-table-wrap">
-    <table class="lodge-table" id="lodgeTable">
-      <thead>
-        <tr>
-          <th data-sort="name">Lodge <span class="ar">⇕</span></th>
-          <th data-sort="date">Next meeting <span class="ar">⇕</span></th>
-          <th data-sort="town">Venue <span class="ar">⇕</span></th>
-          <th class="nosort">Secretary</th>
-          <th class="nosort">Ceremony / Special</th>
-        </tr>
-      </thead>
-      <tbody id="lodgeTbody"></tbody>
-    </table>
-  </div>
+  <div class="list" id="lodgesList"></div>
 </section>
 
 <section id="panel-lodge-events" class="panel" hidden>
@@ -559,6 +557,11 @@ const SAMPLE_EVENTS_COMM = [
   {"Date": new Date(2026,10,14), "Title":"Example: Charity Quiz Night in aid of TLC", "Venue":"Aylesbury Masonic Centre", "Description":"Another fictional example. Community events work exactly like Provincial ones.", "Booking Link":"https://www.eventbrite.co.uk", "Show":"Yes"}
 ];
 
+const SAMPLE_EVENTS_LODGE = [
+  {"Date": new Date(2026,9,17), "Lodge":"Example Lodge of Fidelity", "Title":"Example: Charity Quiz Night", "Venue":"Example Masonic Centre, Aylesbury", "Description":"Fictional example lodge event — open to members, families and friends.", "Booking Link":"https://forms.google.com", "Show":"Yes"},
+  {"Date": new Date(2026,10,7), "Lodge":"Example St Giles Lodge", "Title":"Example: Ladies' Night", "Venue":"Example Hotel, Milton Keynes", "Description":"Another fictional example. Lodge events work exactly like Community Events.", "Booking Link":"https://www.eventbrite.co.uk", "Show":"Yes"}
+];
+
 const SAMPLE_LODGES = [
   {"Code":"L0001","Name":"Example Lodge of Fidelity","Secretary":"","Email":"","Address":"Example Masonic Centre, High Street, Aylesbury, Buckinghamshire, HP20 1AA","Address1":"Example Masonic Centre","Town":"Aylesbury","County":"Buckinghamshire","Postcode":"HP20 1AA","Next Meeting":new Date(2026,9,14),"Installation":"No","Ceremony":"","Special Events":"","Meeting Formula":"2nd Wed. 2, 4, 9, 11"},
   {"Code":"L0002","Name":"Example St Giles Lodge","Secretary":"","Email":"","Address":"Example Masonic Centre, High Street, Aylesbury, Buckinghamshire, HP20 1AA","Address1":"Example Masonic Centre","Town":"Aylesbury","County":"Buckinghamshire","Postcode":"HP20 1AA","Next Meeting":new Date(2026,9,21),"Installation":"Yes","Ceremony":"3rd Degree","Special Events":"","Meeting Formula":"3rd Wed. 1, 3, 5, 9, 11"}
@@ -570,7 +573,7 @@ const SAMPLE_LINKS = [
   {"Category":"Websites","Name":"Buckinghamshire PGL","URL":"https://buckspgl.org","Description":"Fictional example — the Provincial Grand Lodge website.","Show":"Yes"}
 ];
 
-const state = { rows: [], news: [], provEvents: [], commEvents: [], lodges: [], links: [], updated: "", search: "", role: "", type: "", lastFetch: 0, lodgeSearch: "", lodgeSort: "date", lodgeSortDir: 1, lodgeOpen: new Set() };
+const state = { rows: [], news: [], provEvents: [], commEvents: [], lodgeEvents: [], lodges: [], links: [], updated: "", search: "", role: "", type: "", lastFetch: 0, lodgeSearch: "", lodgeSort: "date", lodgeSortDir: 1, lodgeOpen: new Set() };
 const $ = id => document.getElementById(id);
 const URG_RANK = { high: 0, medium: 1, low: 2 };
 
@@ -616,6 +619,7 @@ const GSHEET_TABS = {
   news:       ["News", "Title"],
   provEvents: ["Provincial Events", "Title"],
   commEvents: ["Community Events", "Title"],
+  lodgeEvents: ["Lodge Events", "Title"],
   lodges:     ["Lodges", "Name"],
   links:      ["Links", "Category"]
 };
@@ -677,6 +681,7 @@ async function loadData(isManual) {
       state.provEvents = wb.Sheets["Provincial Events"] ? XLSX.utils.sheet_to_json(wb.Sheets["Provincial Events"], { defval: "" })
                        : wb.Sheets["Events"] ? XLSX.utils.sheet_to_json(wb.Sheets["Events"], { defval: "" }) : [];
       state.commEvents = wb.Sheets["Community Events"] ? XLSX.utils.sheet_to_json(wb.Sheets["Community Events"], { defval: "" }) : [];
+      state.lodgeEvents = wb.Sheets["Lodge Events"] ? XLSX.utils.sheet_to_json(wb.Sheets["Lodge Events"], { defval: "" }) : [];
       state.lodges = wb.Sheets["Lodges"] ? XLSX.utils.sheet_to_json(wb.Sheets["Lodges"], { defval: "" }) : [];
       state.links = wb.Sheets["Links"] ? XLSX.utils.sheet_to_json(wb.Sheets["Links"], { defval: "" }) : [];
       const meta = wb.Sheets["Meta"];
@@ -687,6 +692,7 @@ async function loadData(isManual) {
       state.news = SAMPLE_NEWS;
       state.provEvents = SAMPLE_EVENTS_PROV;
       state.commEvents = SAMPLE_EVENTS_COMM;
+      state.lodgeEvents = SAMPLE_EVENTS_LODGE;
       state.lodges = SAMPLE_LODGES;
       state.links = SAMPLE_LINKS;
       state.updated = "sample data";
@@ -889,7 +895,7 @@ function renderEvents(rows, listId) {
         <h2 class="event-title">${esc(r["Title"])}</h2>
         <div class="event-meta">
           ${d ? `<span class="event-when">${esc(fmtDate(d))} · ${esc(relDays(d))}</span><br>` : ""}
-          ${esc(r["Venue"] ?? "")}
+          ${esc(r["Venue"] ?? "")}${r["Lodge"] ? `<br>Hosted by ${esc(r["Lodge"])}` : ""}
         </div>
         ${r["Description"] ? `<p class="event-desc">${esc(r["Description"])}</p>` : ""}
         ${link ? `<a class="book-btn" href="${esc(link)}" target="_blank" rel="noopener">Book now</a>` : ""}
@@ -906,7 +912,7 @@ function renderAll() {
   $("countEvP").textContent = renderEvents(state.provEvents, "provEventsList");
   $("countEvC").textContent = renderEvents(state.commEvents, "commEventsList");
   $("countLodges").textContent = renderLodges();
-  $("countLodgeEvents").textContent = renderLodgeEvents();
+  $("countLodgeEvents").textContent = renderEvents(state.lodgeEvents, "lodgeEventsList");
   $("countLocations").textContent = renderLocations();
   $("countLinks").textContent = renderLinks();
 }
@@ -946,10 +952,10 @@ function lodgeSortValue(g, col) {
   return d ? d.getTime() : Infinity;
 }
 
-function bookingMailto(g) {
+function bookingMailto(g, dt) {
   const email = String(g.email ?? "").trim();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return "";
-  const when = g.next ? fmtDate(g.next._d) : "";
+  const when = dt ? fmtDate(dt) : (g.next ? fmtDate(g.next._d) : "");
   const subject = "Visitor booking – " + g.name + (when ? " – " + when : "");
   const body = [
     "Dear Secretary,", "",
@@ -960,33 +966,37 @@ function bookingMailto(g) {
   return "mailto:" + email + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
 }
 
-function lodgeRowHtml(g, isPast) {
+function lodgeCardHtml(g, isPast) {
   const src = g.src;
   const d = g.next ? g.next._d : (g.last ? g.last._d : null);
+  const open = state.lodgeOpen.has(g.key);
   const badges = [];
   if (g.next) {
     if (String(src["Installation"] ?? "").trim().toLowerCase() === "yes") badges.push(`<span class="lodge-badge inst">Installation</span>`);
     if (src["Ceremony"]) badges.push(`<span class="lodge-badge cer">${esc(src["Ceremony"])}</span>`);
     if (src["Special Events"]) badges.push(`<span class="lodge-badge spec">${esc(src["Special Events"])}</span>`);
   }
-  const dateCell = !d ? `<span class="lmeta">No date listed</span>`
-    : isPast ? `<span class="lmeta">Last listed: ${esc(fmtDate(d))}</span>` : esc(fmtDate(d));
+  const dateBlock = d
+    ? `<div class="date-block"><div class="d">${d.getDate()}</div><div class="m">${MONTHS_SHORT[d.getMonth()]}</div></div>`
+    : `<div class="date-block"><div class="d">–</div><div class="m">TBC</div></div>`;
+  const when = !d ? "No date listed"
+    : isPast ? "Last listed: " + esc(fmtDate(d))
+    : `<span class="event-when">${esc(fmtDate(d))} · ${esc(relDays(d))}</span>`;
   const mail = bookingMailto(g);
-  const emailHtml = g.email
-    ? `<div class="lmeta">${mail ? `<a href="${esc(mail)}" title="Email the secretary to book in">${esc(g.email)}</a>` : esc(g.email)}</div>`
-    : "";
-  const open = state.lodgeOpen.has(g.key);
+  const contactParts = [];
+  if (g.secretary) contactParts.push("Secretary: " + esc(g.secretary));
+  if (g.email) contactParts.push(mail ? `<a href="${esc(mail)}" title="Email the secretary to book in">${esc(g.email)}</a>` : esc(g.email));
   return `
-    <tr class="${isPast ? "lodge-past" : ""}">
-      <td>
-        <button type="button" class="lname" data-key="${esc(g.key)}" aria-expanded="${open}">${esc(g.name)}</button>
+    <article class="event-card${isPast ? " lodge-past" : ""}">
+      ${dateBlock}
+      <div class="event-main">
+        <h2 class="event-title"><button type="button" class="lname" data-key="${esc(g.key)}" aria-expanded="${open}">${esc(g.name)}</button></h2>
+        <div class="event-meta">${when}<br>${esc(src["Address1"] ?? "")}${src["Town"] ? ", " + esc(src["Town"]) : ""}</div>
         <div class="lodge-detail"${open ? "" : " hidden"}><span class="llbl">Meeting pattern</span>${g.formula ? esc(g.formula) : "Not listed"}</div>
-      </td>
-      <td>${dateCell}</td>
-      <td>${esc(src["Address1"] ?? "")}${src["Town"] ? ", " + esc(src["Town"]) : ""}</td>
-      <td>${g.secretary ? esc(g.secretary) : `<span class="lmeta">—</span>`}${emailHtml}</td>
-      <td>${badges.join("") || "—"}</td>
-    </tr>`;
+        ${contactParts.length ? `<div class="lodge-contact">${contactParts.join(" · ")}</div>` : ""}
+        ${badges.length ? `<div style="margin-top:.6rem">${badges.join("")}</div>` : ""}
+      </div>
+    </article>`;
 }
 
 function renderLodges() {
@@ -1005,74 +1015,32 @@ function renderLodges() {
   const upcoming = shown.filter(g => g.next).sort(cmp(false));
   const past = shown.filter(g => !g.next).sort(cmp(state.lodgeSort === "date"));  // most recently lapsed first
 
-  const tbody = $("lodgeTbody");
+  const el = $("lodgesList");
   if (shown.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="big">No lodges match</div><div>Try a different search.</div></div></td></tr>`;
+    el.innerHTML = `<div class="empty"><div class="big">No lodges match</div><div>Try a different search.</div></div>`;
     return groups.length;
   }
-  tbody.innerHTML =
-    upcoming.map(g => lodgeRowHtml(g, false)).join("") +
+  el.innerHTML =
+    upcoming.map(g => lodgeCardHtml(g, false)).join("") +
     (past.length
-      ? `<tr class="lodge-divider"><td colspan="5">Meeting dates have passed — awaiting update (${past.length})</td></tr>` +
-        past.map(g => lodgeRowHtml(g, true)).join("")
+      ? `<div class="links-group-title lodge-divider-h" style="margin-top:1rem">Meeting dates have passed — awaiting update (${past.length})</div>` +
+        past.map(g => lodgeCardHtml(g, true)).join("")
       : "");
   return groups.length;
 }
 
-$("lodgeTbody").addEventListener("click", e => {
+$("lodgesList").addEventListener("click", e => {
   const b = e.target.closest("button.lname");
   if (!b) return;
-  const detail = b.nextElementSibling;
+  const detail = b.closest(".event-main").querySelector(".lodge-detail");
   const nowOpen = detail.hidden;
   detail.hidden = !nowOpen;
   b.setAttribute("aria-expanded", String(nowOpen));
   if (nowOpen) state.lodgeOpen.add(b.dataset.key); else state.lodgeOpen.delete(b.dataset.key);
 });
 
-document.querySelectorAll("#lodgeTable th[data-sort]").forEach(th => {
-  th.addEventListener("click", () => {
-    const col = th.dataset.sort;
-    state.lodgeSortDir = state.lodgeSort === col ? state.lodgeSortDir * -1 : 1;
-    state.lodgeSort = col;
-    renderLodges();
-  });
-});
+$("lodgeSortSel").addEventListener("change", e => { state.lodgeSort = e.target.value; state.lodgeSortDir = 1; renderLodges(); });
 $("lodgeSearch").addEventListener("input", e => { state.lodgeSearch = e.target.value.trim(); renderLodges(); });
-
-/* ---------- Lodge Events (chronological feed of upcoming meetings) ---------- */
-function renderLodgeEvents() {
-  const today = new Date(); today.setHours(0,0,0,0);
-  const items = state.lodges
-    .map(r => ({ ...r, _d: parseDate(r["Next Meeting"]) }))
-    .filter(r => r._d && r._d >= today)
-    .sort((a, b) => a._d.getTime() - b._d.getTime());
-
-  const el = $("lodgeEventsList");
-  if (items.length === 0) {
-    el.innerHTML = `<div class="empty"><div class="big">No upcoming meetings</div><div>Check back soon.</div></div>`;
-    return 0;
-  }
-  el.innerHTML = items.map(r => {
-    const d = r._d;
-    const badges = [];
-    if (String(r["Installation"] ?? "").trim().toLowerCase() === "yes") badges.push(`<span class="lodge-badge inst">Installation</span>`);
-    if (r["Ceremony"]) badges.push(`<span class="lodge-badge cer">${esc(r["Ceremony"])}</span>`);
-    if (r["Special Events"]) badges.push(`<span class="lodge-badge spec">${esc(r["Special Events"])}</span>`);
-    return `
-    <article class="event-card">
-      <div class="date-block"><div class="d">${d.getDate()}</div><div class="m">${MONTHS_SHORT[d.getMonth()]}</div></div>
-      <div class="event-main">
-        <h2 class="event-title">${esc(r["Name"])}</h2>
-        <div class="event-meta">
-          <span class="event-when">${esc(fmtDate(d))} · ${esc(relDays(d))}</span><br>
-          ${esc(r["Address1"] ?? "")}${r["Town"] ? ", " + esc(r["Town"]) : ""}
-        </div>
-        ${badges.length ? `<div style="margin-top:.6rem">${badges.join("")}</div>` : ""}
-      </div>
-    </article>`;
-  }).join("");
-  return items.length;
-}
 
 /* ---------- Locations (simple grouped address list, no map) ---------- */
 function renderLocations() {
