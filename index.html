@@ -3,37 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>The Second Rising — Buckinghamshire Freemasons</title>
+<title>The Pulse — Buckinghamshire Freemasons</title>
 <meta name="description" content="Buckinghamshire Freemasons noticeboard — lodge vacancies, Provincial news and events.">
 
 <!-- PWA / iOS home screen -->
-<meta name="theme-color" content="#09599E">
+<meta name="theme-color" content="#153E67">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Second Rising">
+<meta name="apple-mobile-web-app-title" content="The Pulse">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
 :root{
+  --navy:#153E67;
+  --navy-deep:#0F2E4D;
+  --blue:#1260A0;
   --red:#E11C23;
-  --blue:#09599E;
-  --blue-deep:#074478;
-  --gold:#FBD60C;
+  --red-soft:#FBE6E6;
+  --red-text:#A32932;
+  --amber:#BD912A;
+  --amber-soft:#F7EDD9;
+  --green-soft:#E6F3EB;
   --black:#0D0D0E;
-  --paper:#F7F8FA;
-  --card:#FFFFFF;
-  --ink:#0D0D0E;
-  --ink-soft:#5C6270;
-  --line:#E3E6EB;
-  --radius:10px;
+  --paper:#FFFFFF;
+  --card:#F4F7FA;
+  --ink:#26394A;
+  --ink-soft:#566777;
+  --line:#D5E0E9;
+  --radius:12px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
@@ -47,49 +52,49 @@ body{
 
 /* ---------- Header ---------- */
 header{
-  background:var(--card);
-  color:var(--ink);
-  padding:calc(1.3rem + env(safe-area-inset-top)) 1.2rem 1.2rem;
+  background:linear-gradient(160deg,var(--navy) 0%,var(--navy-deep) 100%);
+  color:#fff;
+  padding:calc(1.3rem + env(safe-area-inset-top)) 1.2rem 1.6rem;
   position:relative;
 }
-/* red/blue split bar - echo of the roundel */
-header::after{
-  content:"";display:block;position:absolute;left:0;right:0;bottom:0;height:5px;
-  background:linear-gradient(90deg,var(--red) 0 50%,var(--blue) 50% 100%);
-}
 .masthead{max-width:1060px;margin:0 auto;display:flex;align-items:center;gap:1.1rem}
-#crest{height:78px;width:78px;display:none;flex-shrink:0}
+#crest{height:70px;width:70px;display:none;flex-shrink:0}
 #crest.show{display:block}
 .masthead-text{flex:1;min-width:0}
 .eyebrow{
-  font-family:'Marcellus',serif;
-  letter-spacing:.32em;
+  font-family:'Source Sans 3',sans-serif;font-weight:700;
+  letter-spacing:.28em;
   text-transform:uppercase;
-  font-size:.68rem;
-  color:var(--red);
+  font-size:.66rem;
+  color:#9FC2DE;
 }
 h1{
-  font-family:'Marcellus',serif;
-  font-weight:400;
+  font-family:'Source Sans 3',sans-serif;font-weight:800;letter-spacing:-.01em;
   font-size:clamp(1.5rem,4.5vw,2.2rem);
   line-height:1.15;
   margin-top:.15rem;
-  color:var(--blue-deep);
+  color:#fff;
 }
 .header-meta{
   max-width:1060px;margin:.8rem auto 0;
   display:flex;align-items:center;justify-content:space-between;gap:.8rem;
-  font-size:.82rem;color:var(--ink-soft);
+  font-size:.82rem;color:#C7D6E4;
 }
 #updated{font-style:italic}
 #refreshBtn{
   display:inline-flex;align-items:center;gap:.4rem;
-  background:transparent;border:1px solid var(--blue);
-  color:var(--blue);font:inherit;font-size:.8rem;font-weight:600;
+  background:transparent;border:1px solid rgba(255,255,255,.4);
+  color:#fff;font:inherit;font-size:.8rem;font-weight:600;
   padding:.35rem .8rem;border-radius:999px;cursor:pointer;
   transition:background .15s,color .15s;
 }
-#refreshBtn:hover{background:var(--blue);color:#fff}
+#refreshBtn:hover{background:rgba(255,255,255,.15)}
+/* heartbeat pulse divider, echoing the Lodge Pulse report */
+.pulse-line{
+  position:absolute;left:0;right:0;bottom:14px;
+  width:100%;height:22px;pointer-events:none;
+}
+.pulse-line path{fill:none;stroke:#F02D43;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
 #refreshBtn svg{width:14px;height:14px}
 #refreshBtn.spinning svg{animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -136,7 +141,7 @@ input:focus-visible,select:focus-visible,button:focus-visible,.card:focus-visibl
   display:none;
 }
 .banner.show{display:block}
-.banner.warn{background:#FEF8DC;border:1px solid var(--gold);color:#6b5a04}
+.banner.warn{background:var(--red-soft);border:1px solid var(--red);color:var(--red-text)}
 .banner.error{background:#FCE9EA;border:1px solid var(--red);color:var(--red)}
 #countLine{
   max-width:1060px;margin:1.1rem auto .2rem;padding:0 1.2rem;
@@ -162,18 +167,18 @@ input:focus-visible,select:focus-visible,button:focus-visible,.card:focus-visibl
 .card:hover{box-shadow:0 4px 16px rgba(9,89,158,.14);transform:translateY(-1px)}
 .card-top{display:flex;align-items:flex-start;gap:.8rem}
 .role{
-  font-family:'Marcellus',serif;
-  font-size:1.22rem;color:var(--blue-deep);
+  font-family:'Source Sans 3',sans-serif;font-weight:800;letter-spacing:-.01em;
+  font-size:1.22rem;color:var(--navy);
   line-height:1.2;flex:1;
 }
 .roundel{
   flex-shrink:0;
   min-width:46px;height:46px;padding:0 6px;
-  border:2px solid var(--gold);border-radius:50%;
+  border:2px solid var(--blue);border-radius:50%;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  color:var(--blue-deep);background:#FFFDF0;
+  color:var(--navy);background:#FFFDF0;
 }
-.roundel .no{font-family:'Marcellus',serif;font-size:.85rem;line-height:1}
+.roundel .no{font-family:'Source Sans 3',sans-serif;font-weight:800;letter-spacing:-.01em;font-size:.85rem;line-height:1}
 .roundel .lbl{font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)}
 .lodge{font-weight:700;font-size:.97rem;margin-top:.55rem;color:var(--red)}
 .meta{font-size:.85rem;color:var(--ink-soft);margin-top:.25rem;line-height:1.45}
@@ -182,9 +187,9 @@ input:focus-visible,select:focus-visible,button:focus-visible,.card:focus-visibl
   font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
   padding:.22rem .6rem;border-radius:4px;
 }
-.badge.type{background:#E7F0F9;color:var(--blue-deep)}
+.badge.type{background:#E7F0F9;color:var(--navy)}
 .badge.urg-high{background:var(--red);color:#fff}
-.badge.urg-medium{background:var(--gold);color:#4a3f02}
+.badge.urg-medium{background:var(--amber-soft);color:#7a5d16}
 .badge.urg-low{background:#EDEEF1;color:var(--ink-soft)}
 .card-body{
   max-height:0;overflow:hidden;
@@ -194,11 +199,11 @@ input:focus-visible,select:focus-visible,button:focus-visible,.card:focus-visibl
 .desc{font-size:.92rem;line-height:1.55;margin-top:.85rem;color:var(--ink)}
 .contact{
   margin-top:.85rem;padding:.7rem .85rem;
-  background:var(--paper);border-left:3px solid var(--gold);
+  background:var(--card);border-left:3px solid var(--blue);
   border-radius:0 6px 6px 0;
   font-size:.9rem;line-height:1.5;
 }
-.contact .who{font-weight:700;color:var(--blue-deep)}
+.contact .who{font-weight:700;color:var(--navy)}
 .contact a{color:var(--red);word-break:break-all}
 .expand-hint{
   margin-top:.7rem;font-size:.75rem;color:var(--ink-soft);
@@ -209,7 +214,7 @@ input:focus-visible,select:focus-visible,button:focus-visible,.card:focus-visibl
 .empty{
   grid-column:1/-1;text-align:center;padding:3rem 1rem;color:var(--ink-soft);
 }
-.empty .big{font-family:'Marcellus',serif;font-size:1.3rem;color:var(--blue-deep);margin-bottom:.4rem}
+.empty .big{font-family:'Source Sans 3',sans-serif;font-weight:800;letter-spacing:-.01em;font-size:1.3rem;color:var(--navy);margin-bottom:.4rem}
 
 /* ---------- Tabs ---------- */
 .tabs{
@@ -235,7 +240,7 @@ input:focus-visible,select:focus-visible,button:focus-visible,.card:focus-visibl
   white-space:nowrap;flex-shrink:0;
 }
 .tab:hover{color:var(--blue)}
-.tab[aria-selected="true"]{color:var(--blue-deep);border-bottom-color:var(--red)}
+.tab[aria-selected="true"]{color:var(--navy);border-bottom-color:var(--red)}
 .tcount{
   font-size:.68rem;font-weight:700;
   background:#EDEEF1;color:var(--ink-soft);
@@ -258,7 +263,7 @@ input:focus-visible,select:focus-visible,button:focus-visible,.card:focus-visibl
   font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
   color:var(--red);
 }
-.news-title{font-family:'Marcellus',serif;font-size:1.18rem;color:var(--blue-deep);margin-top:.2rem;line-height:1.25}
+.news-title{font-family:'Source Sans 3',sans-serif;font-weight:800;letter-spacing:-.01em;font-size:1.18rem;color:var(--navy);margin-top:.2rem;line-height:1.25}
 .news-body{font-size:.93rem;line-height:1.55;margin-top:.5rem}
 .news-link{display:inline-block;margin-top:.6rem;font-size:.88rem;font-weight:600;color:var(--red);text-decoration:none}
 .news-link:hover{text-decoration:underline}
@@ -274,10 +279,10 @@ input:focus-visible,select:focus-visible,button:focus-visible,.card:focus-visibl
   background:var(--blue);color:#fff;border-radius:8px;
   text-align:center;padding:.5rem 0 .45rem;
 }
-.date-block .d{font-family:'Marcellus',serif;font-size:1.5rem;line-height:1}
-.date-block .m{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-top:.15rem;color:var(--gold)}
+.date-block .d{font-family:'Source Sans 3',sans-serif;font-weight:800;letter-spacing:-.01em;font-size:1.5rem;line-height:1}
+.date-block .m{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-top:.15rem;color:#BFD6EA}
 .event-main{flex:1;min-width:0}
-.event-title{font-family:'Marcellus',serif;font-size:1.18rem;color:var(--blue-deep);line-height:1.25}
+.event-title{font-family:'Source Sans 3',sans-serif;font-weight:800;letter-spacing:-.01em;font-size:1.18rem;color:var(--navy);line-height:1.25}
 .event-meta{font-size:.85rem;color:var(--ink-soft);margin-top:.25rem;line-height:1.45}
 .event-when{font-weight:600;color:var(--red)}
 .event-desc{font-size:.92rem;line-height:1.55;margin-top:.5rem}
@@ -304,7 +309,7 @@ input:focus-visible,select:focus-visible,button:focus-visible,.card:focus-visibl
   font-size:.88rem;
 }
 .lodge-table thead th{
-  background:var(--blue-deep);color:#fff;text-align:left;
+  background:var(--navy);color:#fff;text-align:left;
   padding:.7rem .9rem;font-weight:600;font-size:.82rem;
   cursor:pointer;user-select:none;white-space:nowrap;
 }
@@ -320,8 +325,8 @@ input:focus-visible,select:focus-visible,button:focus-visible,.card:focus-visibl
   display:inline-block;font-size:.72rem;font-weight:700;
   padding:.15rem .5rem;border-radius:4px;margin:0 .3rem .25rem 0;
 }
-.lodge-badge.cer{background:#E7F0F9;color:var(--blue-deep)}
-.lodge-badge.spec{background:#FEF8DC;color:#6b5a04}
+.lodge-badge.cer{background:#E7F0F9;color:var(--navy)}
+.lodge-badge.spec{background:var(--amber-soft);color:#7a5d16}
 .lodge-badge.inst{background:var(--red);color:#fff}
 .event-title button.lname{font-weight:400;color:var(--red)}
 .lodge-contact{font-size:.85rem;margin-top:.5rem;color:var(--ink-soft);line-height:1.5}
@@ -346,10 +351,10 @@ button.lname:hover{text-decoration:underline}
 /* ---------- Locations ---------- */
 .location-card{
   background:var(--card);border:1px solid var(--line);
-  border-left:4px solid var(--gold);
+  border-left:4px solid var(--blue);
   border-radius:var(--radius);padding:1.1rem 1.2rem;
 }
-.location-name{font-family:'Marcellus',serif;font-size:1.15rem;color:var(--blue-deep)}
+.location-name{font-family:'Source Sans 3',sans-serif;font-weight:800;letter-spacing:-.01em;font-size:1.15rem;color:var(--navy)}
 .location-address{font-size:.88rem;color:var(--ink-soft);margin-top:.2rem;line-height:1.5}
 .location-lodges{font-size:.88rem;margin-top:.6rem;line-height:1.6}
 .location-lodges .llbl{font-weight:700;color:var(--red);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:.2rem}
@@ -357,7 +362,7 @@ button.lname:hover{text-decoration:underline}
 /* ---------- Links ---------- */
 .links-group{margin-bottom:.4rem}
 .links-group-title{
-  font-family:'Marcellus',serif;font-size:1.05rem;color:var(--blue-deep);
+  font-family:'Source Sans 3',sans-serif;font-weight:800;letter-spacing:-.01em;font-size:1.05rem;color:var(--navy);
   margin:.4rem 0 .5rem;
 }
 .link-card{
@@ -369,7 +374,7 @@ button.lname:hover{text-decoration:underline}
 }
 .link-card:hover{box-shadow:0 4px 16px rgba(9,89,158,.12);transform:translateY(-1px)}
 .link-main{min-width:0}
-.link-name{font-weight:700;color:var(--blue-deep);font-size:.95rem}
+.link-name{font-weight:700;color:var(--navy);font-size:.95rem}
 .link-desc{font-size:.82rem;color:var(--ink-soft);margin-top:.15rem}
 .link-go{flex-shrink:0;color:var(--red);font-size:1.1rem}
 
@@ -407,8 +412,8 @@ footer{
   100%{transform:rotateY(360deg)}
 }
 .splash-text{
-  font-family:'Marcellus',serif;
-  font-size:1.05rem;color:var(--blue-deep);
+  font-family:'Source Sans 3',sans-serif;font-weight:800;letter-spacing:-.01em;
+  font-size:1.05rem;color:var(--navy);
   letter-spacing:.02em;
 }
 .splash-sub{
@@ -431,7 +436,7 @@ footer{
     </div>
   </div>
   <div class="splash-sub">Buckinghamshire Freemasons</div>
-  <div class="splash-text">The Second Rising</div>
+  <div class="splash-text">The Pulse</div>
 </div>
 
 <header>
@@ -439,7 +444,7 @@ footer{
     <img id="crest" alt="Buckinghamshire Freemasons crest">
     <div class="masthead-text">
       <div class="eyebrow">Buckinghamshire Freemasons</div>
-      <h1>The Second Rising</h1>
+      <h1>The Pulse</h1>
     </div>
   </div>
   <div class="header-meta">
@@ -449,6 +454,9 @@ footer{
       Refresh
     </button>
   </div>
+  <svg class="pulse-line" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0,20 L585,20 L591,4 L597,34 L603,14 L609,20 L1200,20"/>
+  </svg>
 </header>
 
 <nav class="tabs" role="tablist" aria-label="Sections">
@@ -517,7 +525,7 @@ footer{
 </section>
 
 <footer>
-  Vacancies, news and events are maintained centrally. To list a vacancy for your lodge, contact your Lodge VO, XO or APGM Group Head.
+  The various lists are maintained centrally. To add something to one of the lists contact your Lodge VO, XO or APGM Group Head who can liaise with us on the details.
 </footer>
 
 <script>

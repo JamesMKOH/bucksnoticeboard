@@ -1,11 +1,11 @@
 {
-  "name": "The Second Rising — Buckinghamshire Freemasons",
-  "short_name": "Second Rising",
+  "name": "The Pulse — Buckinghamshire Freemasons",
+  "short_name": "The Pulse",
   "description": "Buckinghamshire Freemasons noticeboard — lodge vacancies, Provincial news and events.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#FFFFFF",
-  "theme_color": "#09599E",
+  "theme_color": "#153E67",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
