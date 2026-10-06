@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>The Pulse — Buckinghamshire Freemasons</title>
+<title>The Voice — Buckinghamshire Freemasons</title>
 <meta name="description" content="Buckinghamshire Freemasons noticeboard — lodge vacancies, Provincial news and events.">
 
 <!-- PWA / iOS home screen -->
@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="The Pulse">
+<meta name="apple-mobile-web-app-title" content="The Voice">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -75,6 +75,10 @@ h1{
   margin-top:.15rem;
   color:#fff;
 }
+.title-row{display:flex;align-items:center;gap:.6rem;margin-top:.15rem}
+.title-row h1{margin-top:0}
+.voice-mark{width:40px;height:40px;flex-shrink:0}
+.tagline{font-size:.78rem;color:#C9DDEC;margin-top:.2rem;font-weight:600}
 .header-meta{
   max-width:1060px;margin:.8rem auto 0;
   display:flex;align-items:center;justify-content:space-between;gap:.8rem;
@@ -89,12 +93,12 @@ h1{
   transition:background .15s,color .15s;
 }
 #refreshBtn:hover{background:rgba(255,255,255,.15)}
-/* heartbeat pulse divider, echoing the Lodge Pulse report */
+/* soft divider line along the foot of the header */
 .pulse-line{
   position:absolute;left:0;right:0;bottom:14px;
   width:100%;height:22px;pointer-events:none;
 }
-.pulse-line path{fill:none;stroke:#F02D43;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
+.pulse-line path{fill:none;stroke:#FFFFFF;stroke-width:1.5;stroke-linecap:round;opacity:.28}
 #refreshBtn svg{width:14px;height:14px}
 #refreshBtn.spinning svg{animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -417,8 +421,8 @@ footer{
   letter-spacing:.02em;
 }
 .splash-sub{
-  font-size:.78rem;color:var(--ink-soft);
-  letter-spacing:.28em;text-transform:uppercase;
+  font-size:.7rem;color:var(--ink-soft);
+  letter-spacing:.12em;text-transform:uppercase;text-align:center;padding:0 1rem;
 }
 
 @media (prefers-reduced-motion:reduce){
@@ -435,8 +439,8 @@ footer{
       <img id="splashCrestBack" class="splash-crest-face back" alt="">
     </div>
   </div>
-  <div class="splash-sub">Buckinghamshire Freemasons</div>
-  <div class="splash-text">The Pulse</div>
+  <div class="splash-sub">One organisation · One journey · One voice</div>
+  <div class="splash-text">The Voice</div>
 </div>
 
 <header>
@@ -444,7 +448,8 @@ footer{
     <img id="crest" alt="Buckinghamshire Freemasons crest">
     <div class="masthead-text">
       <div class="eyebrow">Buckinghamshire Freemasons</div>
-      <h1>The Pulse</h1>
+      <div class="title-row"><svg class="voice-mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#0F2E4D" stroke="#FFFFFF" stroke-width="2.5"/><path d="M23,24 L32,17 V48" stroke="#F4F7FA" stroke-width="5.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M40,26 A9,9 0 0 1 40,38" stroke="#E11C23" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M45,22 A15,15 0 0 1 45,42" stroke="#E11C23" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><h1>The Voice</h1></div>
+      <div class="tagline">One organisation · One journey · One voice</div>
     </div>
   </div>
   <div class="header-meta">
@@ -455,7 +460,7 @@ footer{
     </button>
   </div>
   <svg class="pulse-line" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true">
-    <path d="M0,20 L585,20 L591,4 L597,34 L603,14 L609,20 L1200,20"/>
+    <path d="M0,20 L1200,20"/>
   </svg>
 </header>
 
