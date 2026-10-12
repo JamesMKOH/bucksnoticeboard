@@ -1,4 +1,7 @@
-# The Second Rising — Buckinghamshire Freemasons
+# The Voice — Buckinghamshire Freemasons
+
+Styled in the Provincial navy and blue palette with light blue-grey cards. Logo and colours are embedded
+directly in the page; no external stylesheet to keep in sync.
 
 A static noticeboard app with eight tabs — **Vacancies · News · Provincial Events ·
 Community Events · Lodges · Lodge Events · Locations · Links** — all driven by one
@@ -12,7 +15,7 @@ updating content never triggers a Netlify build.
 | `index.html` | The whole app — tabs, styling, filters, fetch logic (logo embedded as base64) |
 | `manifest.json` | PWA manifest for home-screen installation |
 | `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` | Logo icons for home screen and favicon |
-| `bucks-board.xlsx` | The data. Sheets: **Vacancies**, **News**, **Provincial Events**, **Community Events**, **Lodges**, **Links**, **Meta** (last-updated date), **Instructions** |
+| `bucks-board.xlsx` | The data. Sheets: **Vacancies**, **News**, **Provincial Events**, **Community Events**, **Lodges**, **Lodge Events**, **Links**, **Meta** (last-updated date), **Instructions** |
 
 ## One-time setup
 
@@ -35,16 +38,24 @@ Until `DATA_URL` is set, the app shows built-in sample content with an amber ban
    - **Provincial Events** / **Community Events** — one row per event, shown soonest
      first; Booking Link becomes the "Book now" button; past events disappear
      automatically. Enter dates as real dates.
-   - **Lodges** — one row per lodge (name, secretary, email, address, next meeting
-     date, Installation Yes/No, ceremony, special events, meeting-night formula).
-     This one sheet feeds THREE tabs:
-       - **Lodges** — full sortable/searchable directory table, with the
-         secretary's name and email shown per lodge.
-       - **Lodge Events** — a chronological feed of upcoming meetings only (like
-         the Events tabs), soonest first; past meetings drop off automatically.
+   - **Lodges** — one row per lodge *meeting* (a lodge appears once per meeting date;
+     name, secretary, email, address, meeting date, Installation Yes/No, ceremony,
+     special events, meeting-night formula). Secretary and email need filling on
+     only one row per lodge. This sheet feeds TWO tabs:
+       - **Lodges** — one card per lodge (same card style as the events tabs) showing its
+         next meeting. Lodges with no future date drop to a second section at the
+         bottom. Click a lodge name to see its meeting pattern; click the
+         secretary's email to open a pre-filled booking-in email. Search and a
+         sort menu (next meeting / name / venue) sit above the list.
        - **Locations** — a simple list of venues, with lodges sharing the same
-         address grouped under one entry. No interactive map and no external
-         mapping service — just addresses.
+         address grouped under one entry (each lodge listed once). No interactive
+         map and no external mapping service — just addresses.
+   - **Lodge Events** — events a lodge is running (charity night, social evening,
+     ladies' night…), NOT regular meetings. One row per event: Date, Lodge, Title,
+     Venue, Description, Booking Link, Show. Laid out like Community Events, with
+     the lodge shown as "Hosted by". Past events disappear automatically. If this
+     tab is missing from a Google Sheet the app simply shows an empty Lodge Events
+     tab; nothing else is affected.
    - **Links** — one row per link (WhatsApp group, Facebook page, website, etc).
      Category groups links together under a heading on the Links tab (e.g. every
      "WhatsApp Groups" row appears together). Show = No hides one without deleting it.
